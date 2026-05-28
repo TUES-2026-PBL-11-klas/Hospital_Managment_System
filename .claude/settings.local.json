@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/login)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/register)",
+      "Bash(npx @nestjs/cli new backend --package-manager npm --skip-git)",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(Remove-Item \"c:/MOJE_DA_PIPAME/coding/10clas/Hospital_Managment_System/backend/prisma.config.ts\")"
+    ]
+  }
+}
