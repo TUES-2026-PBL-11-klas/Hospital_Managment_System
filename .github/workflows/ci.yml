@@ -74,7 +74,9 @@ jobs:
       - name: Update Kubernetes image tags
         run: |
           sed -i "s|image: medinest/api:.*|image: ${{ secrets.DOCKER_USERNAME }}/medinest-api:${{ github.sha }}|g" infra/k8s/api-deployment.yaml
+          sed -i "s|image: .*/medinest-api:.*|image: ${{ secrets.DOCKER_USERNAME }}/medinest-api:${{ github.sha }}|g" infra/k8s/api-deployment.yaml
           sed -i "s|image: medinest/web:.*|image: ${{ secrets.DOCKER_USERNAME }}/medinest-web:${{ github.sha }}|g" infra/k8s/web-deployment.yaml
+          sed -i "s|image: .*/medinest-web:.*|image: ${{ secrets.DOCKER_USERNAME }}/medinest-web:${{ github.sha }}|g" infra/k8s/web-deployment.yaml
 
       - name: Commit and push manifest changes
         run: |
