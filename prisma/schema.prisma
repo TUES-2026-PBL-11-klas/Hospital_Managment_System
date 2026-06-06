@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  NURSE
+  PHARMACIST
+  PATIENT
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PrescriptionStatus {
+  ISSUED
+  DISPENSED
+  EXPIRED
+  CANCELLED
+}
+
+enum MetricType {
+  BLOOD_PRESSURE
+  WEIGHT
+  GLUCOSE
+  HEART_RATE
+  TEMPERATURE
+  OXYGEN_SATURATION
+}
+
+enum NotificationType {
+  APPOINTMENT_BOOKED
+  APPOINTMENT_CANCELLED
+  PRESCRIPTION_DISPENSED
+  DIAGNOSIS_ADDED
+  APPOINTMENT_REMINDER
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime    @default(now())
+  patient      Patient?
+  doctor       Doctor?
+  nurse        Nurse?
+  pharmacist   Pharmacist?
+}
+
+model Patient {
+  id              String         @id @default(uuid())
+  userId          String         @unique
+  user            User           @relation(fields: [userId], references: [id])
+  egn             String         @unique
+  dateOfBirth     DateTime
+  insuranceNumber String?
+  address         String?
+  appointments    Appointment[]
+  symptomChecks   SymptomCheck[]
+  healthMetrics   HealthMetric[]
+  notifications   Notification[]
+}
+
+model Doctor {
+  id            String            @id @default(uuid())
+  userId        String            @unique
+  user          User              @relation(fields: [userId], references: [id])
+  specialty     String
+  licenseNumber String            @unique
+  department    String
+  appointments   Appointment[]
+  trainingData   LlmTrainingData[]
+  availability   DoctorAvailability[]
+}
+
+model Nurse {
+  id         String @id @default(uuid())
+  userId     String @unique
+  user       User   @relation(fields: [userId], references: [id])
+  department String
+}
+
+model Pharmacist {
+  id            String      @id @default(uuid())
+  userId        String      @unique
+  user          User        @relation(fields: [userId], references: [id])
+  licenseNumber String      @unique
+  inventory     Inventory[]
+}
+
+model Appointment {
+  id            String            @id @default(uuid())
+  patientId     String
+  patient       Patient           @relation(fields: [patientId], references: [id])
+  doctorId      String
+  doctor        Doctor            @relation(fields: [doctorId], references: [id])
+  scheduledAt   DateTime
+  status        AppointmentStatus @default(SCHEDULED)
+  notes         String?
+  diagnosis     Diagnosis?
+  symptomChecks SymptomCheck[]
+}
+
+model Diagnosis {
+  id            String         @id @default(uuid())
+  appointmentId String         @unique
+  appointment   Appointment    @relation(fields: [appointmentId], references: [id])
+  icdCode       String
+  description   String
+  createdAt     DateTime       @default(now())
+  prescriptions Prescription[]
+}
+
+model Prescription {
+  id          String             @id @default(uuid())
+  diagnosisId String
+  diagnosis   Diagnosis          @relation(fields: [diagnosisId], references: [id])
+  issuedAt    DateTime           @default(now())
+  validUntil  DateTime
+  status      PrescriptionStatus @default(ISSUED)
+  items       PrescriptionItem[]
+}
+
+model PrescriptionItem {
+  id             String       @id @default(uuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id])
+  medicationId   String
+  medication     Medication   @relation(fields: [medicationId], references: [id])
+  dosage         String
+  frequency      String
+  durationDays   Int
+}
+
+model Medication {
+  id                String             @id @default(uuid())
+  name              String
+  genericName       String
+  unit              String
+  category          String
+  inventory         Inventory[]
+  prescriptionItems PrescriptionItem[]
+}
+
+model Inventory {
+  id           String     @id @default(uuid())
+  medicationId String
+  medication   Medication @relation(fields: [medicationId], references: [id])
+  pharmacistId String
+  pharmacist   Pharmacist @relation(fields: [pharmacistId], references: [id])
+  batchNumber  String
+  quantity     Int
+  expiryDate   DateTime
+}
+
+model SymptomCheck {
+  id                 String       @id @default(uuid())
+  patientId          String
+  patient            Patient      @relation(fields: [patientId], references: [id])
+  appointmentId      String?
+  appointment        Appointment? @relation(fields: [appointmentId], references: [id])
+  symptomsText       String
+  suggestedSpecialty String
+  confidenceScore    Float
+  llmReasoning       Json
+  modelVersion       String
+  createdAt          DateTime     @default(now())
+}
+
+model LlmTrainingData {
+  id               String   @id @default(uuid())
+  symptomsText     String
+  correctSpecialty String
+  verifiedByDoctor Boolean  @default(false)
+  verifiedBy       String?
+  doctor           Doctor?  @relation(fields: [verifiedBy], references: [id])
+  dataSource       String
+  createdAt        DateTime @default(now())
+}
+
+model HealthMetric {
+  id        String     @id @default(uuid())
+  patientId String
+  patient   Patient    @relation(fields: [patientId], references: [id])
+  type      MetricType
+  value     Float
+  unit      String
+  notes     String?
+  recordedAt DateTime  @default(now())
+}
+
+model DoctorAvailability {
+  id        String   @id @default(uuid())
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  slotMinutes Int    @default(30)
+  isActive  Boolean  @default(true)
+
+  @@unique([doctorId, dayOfWeek, startTime])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  patientId String
+  patient   Patient          @relation(fields: [patientId], references: [id])
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
