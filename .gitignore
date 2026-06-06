@@ -9,3 +9,38 @@ coverage/
 prisma/migrations/
 *.gguf
 .claude/
+
+# Terraform — state contains all resource details including secrets
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Variable files contain secrets (passwords, API keys, tokens)
+*.tfvars
+*.tfvars.json
+
+# Terraform override files are local-only environment adjustments
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform lock file for provider versions (team preference: commit if you want reproducible provider versions)
+# .terraform.lock.hcl
+
+# Terraform CLI config
+.terraformrc
+terraform.rc
+
+# Transient Terraform lock info
+.terraform.tfstate.lock.info
+
+# Kubernetes secrets created locally (never commit actual secret values)
+*-secrets-values.yaml
+secrets.yaml
+
+# Docker build cache and credentials
+.docker/
+docker-compose.override.yml
