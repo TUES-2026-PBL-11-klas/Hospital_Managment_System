@@ -10,6 +10,7 @@ RUN npm install --workspace=@medinest/api --workspace=@medinest/trpc
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm run build --workspace=@medinest/trpc
 RUN npx prisma generate
 RUN npm run build --workspace=@medinest/trpc
 RUN npm run build --workspace=@medinest/api
