@@ -4,8 +4,9 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json package-lock.json* ./
 COPY apps/web/package.json ./apps/web/
+COPY apps/api/package.json ./apps/api/
 COPY packages/trpc/package.json ./packages/trpc/
-RUN npm install --workspace=@medinest/web --workspace=@medinest/trpc
+RUN npm ci
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
